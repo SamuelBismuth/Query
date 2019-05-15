@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
   TextQuery tq(infile);
-  //  tq.display_map();
+  // tq.display_map();
   while (true) {
     cout << "Enter one or two words to look for, or q to quit:" << endl;
     string line;

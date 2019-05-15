@@ -8,11 +8,34 @@
 #include <regex>
 #include <set>
 #include <stdexcept>
+#include <string>
 
 using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<QueryBase> QueryBase::factory(const string &s) {
-  // if(s == "smart") return std::shared_ptr<QueryBase>(new WordQuery("smart"));
+  regex regexAndOrNum("\\s*(\\w+)\\s+(AND|OR|\\d+)\\s+(\\w+)\\s*");
+  regex regexNot("\\s*NOT\\s+(\\w+)\\s*");
+  regex regexWord("\\s*(\\w+)\\s*");
+  smatch matchThreeWords, matchTwoWords, matchOneWord;
+  if (regex_match(s, matchThreeWords, regexAndOrNum)) {
+    string leftWord = matchThreeWords.str(1);
+    string logic = matchThreeWords.str(2);
+    string rightWord = matchThreeWords.str(3);
+    if (logic == "AND") {
+      return std::shared_ptr<QueryBase>(new AndQuery(leftWord, rightWord));
+    } else if (logic == "OR") {
+      return std::shared_ptr<QueryBase>(new OrQuery(leftWord, rightWord));
+    } else {
+      return std::shared_ptr<QueryBase>(
+          new NQuery(leftWord, rightWord, stoi(logic)));
+    }
+  } else if (regex_match(s, matchTwoWords, regexNot)) {
+    return std::shared_ptr<QueryBase>(new NotQuery(matchTwoWords.str(1)));
+  } else if (regex_match(s, matchOneWord, regexWord)) {
+    return std::shared_ptr<QueryBase>(new WordQuery(matchOneWord.str(1)));
+  } else {
+    throw invalid_argument("Unrecognized search");
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 QueryResult NotQuery::eval(const TextQuery &text) const {
@@ -54,5 +77,23 @@ QueryResult OrQuery::eval(const TextQuery &text) const {
   return QueryResult(rep(), ret_lines, left_result.get_file());
 }
 /////////////////////////////////////////////////////////
-QueryResult NQuery::eval(const TextQuery &text) const {}
+QueryResult NQuery::eval(const TextQuery &text) const {
+  QueryResult result = AndQuery::eval(text);
+  auto ret_lines = std::make_shared<std::set<line_no>>();
+  auto iter = result.begin(), iter_end = result.end();
+  for (; iter != iter_end; ++iter) {
+    smatch match;
+    regex regexNum("\\s*[" + left_query + "][\\w+\\s+]{0," +
+                   to_string(dist) + "}["+ right_query +
+                   "]\\s*");
+    cout << "\\s*[" + left_query + "][\\w+\\s+]{0," +
+                   to_string(dist) + "}["+ right_query +
+                   "]\\s*"
+         << endl;
+    if (regex_match(result.get_file()->at(*iter), match, regexNum)) {
+      ret_lines->insert(*iter);
+    }
+  }
+  return QueryResult(rep(), ret_lines, result.get_file());
+}
 /////////////////////////////////////////////////////////

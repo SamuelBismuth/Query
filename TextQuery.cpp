@@ -21,6 +21,9 @@ TextQuery::TextQuery(ifstream &is) : file(new vector<string>) {
     istringstream line(text); // separate the line into words
     string word;
     while (line >> word) { // for each word in that line
+      auto words_begin = sregex_iterator(word.begin(), word.end(), words_regex);
+      smatch match = *words_begin;
+      word = match.str();
       //////////////////////////////////////////////////////////////////////////
       // if word isn't already in wm, subscripting adds a new entry
       auto &lines = wm[word]; // lines is a shared_ptr
