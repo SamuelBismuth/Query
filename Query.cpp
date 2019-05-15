@@ -83,14 +83,28 @@ QueryResult NQuery::eval(const TextQuery &text) const {
   auto iter = result.begin(), iter_end = result.end();
   for (; iter != iter_end; ++iter) {
     smatch match;
-    regex regexNum("\\s*[" + left_query + "][\\w+\\s+]{0," +
-                   to_string(dist) + "}["+ right_query +
-                   "]\\s*");
-    cout << "\\s*[" + left_query + "][\\w+\\s+]{0," +
-                   to_string(dist) + "}["+ right_query +
-                   "]\\s*"
-         << endl;
-    if (regex_match(result.get_file()->at(*iter), match, regexNum)) {
+    // regex regexNum("\\s*" + left_query + "\\s*[\\w+]{0," +
+    //                to_string(dist) + "}\\s*"+ right_query +
+    //                "\\s*");
+
+    regex regexNum(left_query + "\\s*" + right_query + ".*");
+    // cout << left_query + "\\s*" + right_query + ".*" << endl;
+    // cout << result.get_file()->at(*iter) << endl;
+    string strTest = "I now know the time in Paris or Greece.";
+    string str = result.get_file()->at(*iter);
+    cout << typeid(str).name() << endl;
+    cout << typeid(strTest).name() << endl;
+
+    cout << strTest << endl;
+    cout << str << endl;
+
+    if (str == strTest) {
+      cout << "equal" << endl;
+    }
+    // cout << strTest << endl;
+    // if (regex_match(result.get_file()->at(*iter), match, test)) {
+    if (regex_match(str, match, regexNum)) {
+      cout << "success" << endl;
       ret_lines->insert(*iter);
     }
   }
