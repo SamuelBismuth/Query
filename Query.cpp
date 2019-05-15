@@ -81,30 +81,22 @@ QueryResult NQuery::eval(const TextQuery &text) const {
   QueryResult result = AndQuery::eval(text);
   auto ret_lines = std::make_shared<std::set<line_no>>();
   auto iter = result.begin(), iter_end = result.end();
+  regex words_regex("[\\w']+");
+  regex regexNumLr("(.)*" + left_query + " ([\\w]+ ){0," + to_string(dist) +
+                   "}" + right_query + "(.)*");
+  regex regexNumRl("(.)*" + right_query + " ([\\w]+ ){0," + to_string(dist) +
+                   "}" + left_query + "(.)*");
   for (; iter != iter_end; ++iter) {
-    smatch match;
-    // regex regexNum("\\s*" + left_query + "\\s*[\\w+]{0," +
-    //                to_string(dist) + "}\\s*"+ right_query +
-    //                "\\s*");
-
-    regex regexNum(left_query + "\\s*" + right_query + ".*");
-    // cout << left_query + "\\s*" + right_query + ".*" << endl;
-    // cout << result.get_file()->at(*iter) << endl;
-    string strTest = "I now know the time in Paris or Greece.";
-    string str = result.get_file()->at(*iter);
-    cout << typeid(str).name() << endl;
-    cout << typeid(strTest).name() << endl;
-
-    cout << strTest << endl;
-    cout << str << endl;
-
-    if (str == strTest) {
-      cout << "equal" << endl;
+    string line = result.get_file()->at(*iter);
+    string newLine = "";
+    auto words_begin = sregex_iterator(line.begin(), line.end(), words_regex);
+    auto words_end = sregex_iterator();
+    for (sregex_iterator i = words_begin; i != words_end; ++i) {
+      smatch match = *i;
+      string match_str = match.str();
+      newLine = newLine + match_str + " ";
     }
-    // cout << strTest << endl;
-    // if (regex_match(result.get_file()->at(*iter), match, test)) {
-    if (regex_match(str, match, regexNum)) {
-      cout << "success" << endl;
+    if (regex_match(newLine, regexNumLr) || regex_match(newLine, regexNumRl)) {
       ret_lines->insert(*iter);
     }
   }
