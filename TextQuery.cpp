@@ -1,3 +1,6 @@
+/* Samuel Bismuth 342533064 */
+/* Matan Zilka 307949438 */
+
 #include "TextQuery.h"
 #include <iostream>
 #include <iterator>

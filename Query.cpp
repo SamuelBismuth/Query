@@ -1,3 +1,6 @@
+/* Samuel Bismuth 342533064 */
+/* Matan Zilka 307949438 */
+
 #include "Query.h"
 #include "TextQuery.h"
 #include <algorithm>
@@ -13,10 +16,12 @@
 using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 std::shared_ptr<QueryBase> QueryBase::factory(const string &s) {
-  regex regexAndOrNum("\\s*(\\w+)\\s+(AND|OR|\\d+)\\s+(\\w+)\\s*");
-  regex regexNot("\\s*NOT\\s+(\\w+)\\s*");
-  regex regexWord("\\s*(\\w+)\\s*");
+  // Regexes to match with all the format
+  regex regexAndOrNum("\\s*([\\w']+)\\s+(AND|OR|\\d+)\\s+([\\w']+)\\s*");
+  regex regexNot("\\s*NOT\\s+([\\w']+)\\s*");
+  regex regexWord("\\s*([\\w']+)\\s*");
   smatch matchThreeWords, matchTwoWords, matchOneWord;
+  // We're now testing the string, and get the match group.
   if (regex_match(s, matchThreeWords, regexAndOrNum)) {
     string leftWord = matchThreeWords.str(1);
     string logic = matchThreeWords.str(2);
@@ -81,10 +86,11 @@ QueryResult NQuery::eval(const TextQuery &text) const {
   QueryResult result = AndQuery::eval(text);
   auto ret_lines = std::make_shared<std::set<line_no>>();
   auto iter = result.begin(), iter_end = result.end();
+  // The regexes.
   regex words_regex("[\\w']+");
-  regex regexNumLr("(.)*" + left_query + " ([\\w]+ ){0," + to_string(dist) +
+  regex regexNumLr("(.)*" + left_query + " ([\\w']+ ){0," + to_string(dist) +
                    "}" + right_query + "(.)*");
-  regex regexNumRl("(.)*" + right_query + " ([\\w]+ ){0," + to_string(dist) +
+  regex regexNumRl("(.)*" + right_query + " ([\\w']+ ){0," + to_string(dist) +
                    "}" + left_query + "(.)*");
   for (; iter != iter_end; ++iter) {
     string line = result.get_file()->at(*iter);
